@@ -1,0 +1,4 @@
+Python is a programming language
+Machine learning uses Python
+Data science is fun
+Python programming is powerful
