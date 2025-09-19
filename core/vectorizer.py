@@ -1,13 +1,14 @@
+import math
 from typing import Dict, List
 from core.tokenizer import tokenize
 
 def build_vocabulary(documents: List[str]) -> Dict[str, int]:
     """
     Build vocabulary from a list of documents.
-    
+
     Args:
         documents: List of document texts
-        
+
     Returns:
         Dictionary mapping word -> index
     """
@@ -18,19 +19,35 @@ def build_vocabulary(documents: List[str]) -> Dict[str, int]:
                 vocabulary[word] = len(vocabulary)
     return vocabulary
 
-def create_binary_bow(document: str, vocabulary: Dict[str, int]) -> List[int]:
+def compute_idf(documents: List[str], vocabulary: Dict[str, int]) -> List[float]:
     """
-    Create binary Bag-of-Words vector for a single document.
-    
+    Compute inverse document frequency for each word in the vocabulary:
+    idf(word) = log(num_documents / num_documents_containing_word).
+    """
+    document_frequency = [0] * len(vocabulary)
+    for document in documents:
+        for word in set(tokenize(document)):
+            if word in vocabulary:
+                document_frequency[vocabulary[word]] += 1
+
+    num_documents = len(documents)
+    return [math.log(num_documents / df) for df in document_frequency]
+
+def create_tfidf_vector(document: str, vocabulary: Dict[str, int], idf: List[float]) -> List[float]:
+    """
+    Create a TF-IDF vector for a single document: raw term frequency weighted
+    by how rare each word is across the corpus.
+
     Args:
         document: Document text
         vocabulary: Word -> index mapping
-        
+        idf: Inverse document frequency per word, aligned to vocabulary indices
+
     Returns:
-        Binary vector (1 if word present, 0 if absent)
+        TF-IDF vector
     """
-    vector = [0] * len(vocabulary)
+    term_frequency = [0] * len(vocabulary)
     for word in tokenize(document):
         if word in vocabulary:
-            vector[vocabulary[word]] = 1
-    return vector
+            term_frequency[vocabulary[word]] += 1
+    return [count * idf[index] for index, count in enumerate(term_frequency)]

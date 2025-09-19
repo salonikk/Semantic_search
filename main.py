@@ -3,25 +3,27 @@
 Semantic Search Engine - Main Entry Point
 """
 
-from core.tokenizer import tokenize
+from core.index import build_index
+from core.search import search
+
 
 def main():
-    """Main function to run the search engine."""
-    print("🔍 Semantic Search Engine")
+    """Load the sample documents and rank them for each query."""
+    print("Semantic Search Engine")
     print("=" * 30)
-    
-    # Test the tokenizer
-    test_texts = [
-        "Hello, world!",
-        "Python programming is fun!",
-        "Don't worry, be happy."
-    ]
-    
-    for text in test_texts:
-        tokens = tokenize(text)
-        print(f"Text: '{text}'")
-        print(f"Tokens: {tokens}")
+
+    with open("data/sample_docs.txt") as f:
+        documents = [line.strip() for line in f if line.strip()]
+
+    vocabulary, idf, vectors = build_index(documents)
+
+    query = input("Query> ").strip()
+    while query:
+        for score, document in search(query, documents, vocabulary, idf, vectors):
+            print(f"{score}\t{document}")
         print()
+        query = input("Query> ").strip()
+
 
 if __name__ == "__main__":
     main()
